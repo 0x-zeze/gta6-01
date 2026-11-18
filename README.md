@@ -6,10 +6,11 @@
 
 An entry for the [Make GTA 6 bounty](https://make.fun/bounty/gta6-01) on make.fun.
 
-**Port Aurora** is a sun-soaked harbour city, and you are its newest runner.
-Steal cars off the avenues, outrun the harbour police, and run five jobs for
-the Tide crew — from a first quiet delivery at the docks to one long sunset
-getaway across the whole city.
+**Solstice City** takes place in **Port Aurora**, a sun-soaked harbour city —
+and you are its newest runner. Lift cars off the avenues, outrun the harbour
+police, and work five jobs for the Tide crew: a quiet first delivery at the
+docks, a hot-car pickup, a heat-wave chase, trouble at the container yard,
+and one long sunset getaway across the whole city.
 
 ## Play it
 
@@ -18,40 +19,54 @@ node serve.ts
 ```
 
 Then open http://localhost:8080 in a desktop browser. No build step, no
-network: the game is plain static files under `game/`.
+network dependency — the game is plain static files under `game/`.
 
 ## Controls
 
 | Input | Action |
 | --- | --- |
-| WASD / arrows | Walk (Shift to sprint) |
-| E | Enter / steal the nearest car, exit a car |
-| W/S + A/D | Drive, steer — Space brakes |
+| WASD / arrow keys | Walk (hold Shift to sprint) |
+| E | Enter or steal the nearest car; exit the car you are driving |
+| W / S + A / D | Accelerate, brake/reverse, steer — Space is the handbrake |
 | Mouse | Aim, click to shoot |
-| M | Mute |
-| Enter / click | Start, or keep playing after Busted / Wasted |
+| M | Mute / unmute |
+| Enter / click | Start the game, or keep playing after Busted / Wasted |
 
-## What is in the game
+## Features
 
 - **A city to explore** — Port Aurora: a road-grid harbour city with towers,
-  a central park, plazas, a beach strip and container docks, all generated
-  from a seed so every street is the same every run.
+  a central park, plazas, a beach strip and container docks. The whole city
+  is generated from a seed, so every street is identical on every run.
 - **Traffic and pedestrians** — cars follow the avenues and turn at crossings,
-  parked cars wait to be stolen, pedestrians stroll the sidewalks (and flee
-  when things get loud).
+  parked cars wait to be stolen, and pedestrians stroll the sidewalks (and
+  scatter when things get loud).
 - **Cars to steal and drive** — sedans, taxis, vans and sportscars, each with
-  its own handling; stealing one raises the heat.
+  its own handling. Stealing one raises the heat.
 - **Wanted level 0–5** — crime brings police cars and foot cops. Stars cool
   off when you stay out of sight; get caught on foot and you are Busted.
 - **Five story jobs** — *First Run*, *Hot Wheels*, *Heat Wave*,
   *Dockside Trouble* and *The Long Sunset*, with markers, a waypoint arrow,
   objective text and cash rewards. Finish them all for free roam.
-- **Combat** — a pistol with ammo, hostile rivals who shoot back, battered
-  cars that smoke and explode.
-- **HUD with a live minimap** — cash, health, wanted stars, ammo, speed,
+- **Combat** — a pistol with ammo, hostile rivals who shoot back, and
+  battered cars that smoke and explode.
+- **HUD with a live minimap** — cash, health, wanted stars, ammo, speed, an
   objective panel, and a minimap tracking you, the police and the job marker.
-- **Start screen, save, sound** — progress (cash, jobs) saves to localStorage
-  automatically; every sound is synthesized live with WebAudio.
+- **Save and sound** — progress (cash, jobs) saves to localStorage
+  automatically; every sound is synthesized live with WebAudio. There is a
+  start screen, plus Busted / Wasted end cards.
+
+## Tips bermain
+
+- **Kejar bintang rendah, bukan nol.** One star is enough for the cops to
+  notice you — but a short chase earns you a faster getaway car for free.
+- **Parked sportscars are the prize.** Sedans are everywhere; a sportscar
+  turns the sunset getaway from a crawl into a clean escape.
+- **Hilang dari radar dulu.** When the stars are high, break line of sight
+  and stay quiet — the wanted level cools off once the police lose you.
+- **Ikuti panah waypoint.** Every job has a marker on the minimap and an
+  arrow at the edge of the screen pointing to the objective.
+- **Hemat peluru.** Ammo is limited and rivals shoot back — drive past a
+  fight you do not need instead of standing in it.
 
 ## Files
 
