@@ -1,87 +1,76 @@
-[![make.fun](https://make.fun/badge/gta6-01.svg)](https://make.fun/c/gta6-01)
-[![rank](https://make.fun/badge/gta6-01/0x-zeze/gta6-01/rank.svg)](https://make.fun/c/gta6-01)
-[![reward](https://make.fun/badge/gta6-01/0x-zeze/gta6-01/reward.svg)](https://make.fun/c/gta6-01)
+# Solstice City — an open-world crime game (make.fun gta6-01)
 
-# Vice Shores — an open-world crime game
+**Port Aurora** is a sun-soaked harbour city, and you are its newest runner.
+Steal cars off the avenues, outrun the harbour police, and run five jobs for
+the Tide crew — from a first quiet delivery at the docks to one long sunset
+getaway across the whole city.
 
-A complete open-world crime game in the spirit of GTA 6, built for the
-[make.fun gta6-01 bounty](https://make.fun/c/gta6-01): a sun-soaked coastal
-city to explore on foot and by car, with traffic and pedestrians, cars to
-steal, a wanted level and police who respond to it, missions and a story,
-combat, a HUD with a minimap, a start screen and a save — all running offline
-from static files in a desktop browser. No build step, no network request,
-no library: plain canvas 2D and WebAudio, everything original.
-
-## Play
+## Play it
 
 ```sh
 node serve.ts
 ```
 
-Then open http://localhost:8080 in a desktop browser.
+Then open http://localhost:8080 in a desktop browser. No build step, no
+network: the game is plain static files under `game/`.
 
-- **W A S D / arrows** — move on foot, drive in a car
-- **E** — enter / exit a car (steal parked and traffic cars)
-- **Mouse** — aim, **Click / Space** — shoot
-- **Shift** — sprint on foot
-- **P** — pause, **M** — mute
+## Controls
 
-## The story
+| Input | Action |
+| --- | --- |
+| WASD / arrows | Walk (Shift to sprint) |
+| E | Enter / steal the nearest car, exit a car |
+| W/S + A/D | Drive, steer — Space brakes |
+| Mouse | Aim, click to shoot |
+| M | Mute |
+| Enter / click | Start, or keep playing after Busted / Wasted |
 
-You are Kai, fresh out of the marina flats, with $120 and a borrowed name.
-Rico runs the garage on Palm Row. Mara runs the docks. The police run
-everything else. Five jobs stand between you and the big score:
+## What is in the game
 
-1. **First Wheels** — steal a car and bring it to Rico's Garage.
-2. **Courier Run** — three parcels, three drop-offs, one clock.
-3. **Dockside Trouble** — clear the enforcers off Cargo Row.
-4. **Getaway** — the whole precinct is coming; reach the hideout.
-5. **The Big Score** — hit Shores Bank, grab the cash, and vanish.
+- **A city to explore** — Port Aurora: a road-grid harbour city with towers,
+  a central park, plazas, a beach strip and container docks, all generated
+  from a seed so every street is the same every run.
+- **Traffic and pedestrians** — cars follow the avenues and turn at crossings,
+  parked cars wait to be stolen, pedestrians stroll the sidewalks (and flee
+  when things get loud).
+- **Cars to steal and drive** — sedans, taxis, vans and sportscars, each with
+  its own handling; stealing one raises the heat.
+- **Wanted level 0–5** — crime brings police cars and foot cops. Stars cool
+  off when you stay out of sight; get caught on foot and you are Busted.
+- **Five story jobs** — *First Run*, *Hot Wheels*, *Heat Wave*,
+  *Dockside Trouble* and *The Long Sunset*, with markers, a waypoint arrow,
+  objective text and cash rewards. Finish them all for free roam.
+- **Combat** — a pistol with ammo, hostile rivals who shoot back, battered
+  cars that smoke and explode.
+- **HUD with a live minimap** — cash, health, wanted stars, ammo, speed,
+  objective panel, and a minimap tracking you, the police and the job marker.
+- **Start screen, save, sound** — progress (cash, jobs) saves to localStorage
+  automatically; every sound is synthesized live with WebAudio.
 
-Between jobs, taxi fares pay the bills, and cash, health and armor pickups
-are scattered across the city. Progress saves automatically every few
-seconds and on pause — continue it from the title screen.
+## Files
 
-## What is in the city
+- `game/index.html` — the page, one canvas.
+- `game/src/boot.js` — builds the world, runs the loop, owns the player.
+- `game/src/town.js` — Port Aurora: avenues, blocks, park, beach, docks.
+- `game/src/actors.js` — traffic, pedestrians, police, bullets, wanted system.
+- `game/src/jobs.js` — the five Tide jobs and their steps.
+- `game/src/paint.js` — world rendering, HUD, live minimap, title/end cards.
+- `game/src/sound.js` — WebAudio synth: engine, sirens, shots, jingles.
+- `game/src/settings.js` — tuning numbers and the city palette.
+- `game/src/rng.js` — the seeded generator behind the city.
+- `game/src/keys.js` — keyboard + mouse input.
+- `game/src/store.js` — the localStorage save slot.
+- `game/src/stage.js` — staged screenshot scenes (`?shot=start|drive|chase|mission`).
+- `main.ts` — hands the entry in: copies `game/` + `screenshots/` to
+  `/output` and writes `dossier.json` with the vendored make.fun library.
+- `shots.json` — the four screenshot scenes and their seeds.
 
-- A procedural coastal city: streets, blocks, beach, marina pier, docks,
-  Palm Park, neon downtown, hospital and hideout.
-- Traffic cars that follow the roads and turn at intersections, plus
-  pedestrians with their own routines who flee gunfire.
-- A wanted system (0–5 stars): stealing, hitting pedestrians and shooting
-  raise the heat; police cars chase and ram you, foot officers try to bust
-  you, and the heat cools off when you stay clean and out of sight.
-- Combat on foot with mouse aim, armed dock enforcers who shoot back,
-  car damage and explosions, health and armor.
-- A HUD with cash, health and armor bars, wanted stars, the mission
-  objective, a message banner, a speed readout — and a live minimap with
-  the mission marker, the police and the player.
-- Synthesized sound: engine hum, police sirens, gunshots, pickups and a
-  bass-line music loop — all generated live with WebAudio, no audio files.
+## Screenshots
 
-## Structure
+Four real renders of the game in a headless browser: the title screen, driving
+down an avenue, a four-star police chase (the cover), and the dockside job.
 
-```
-game/
-  index.html        page shell, canvas only
-  src/
-    main.js         boot, fixed-step loop, screens, save / continue
-    world.js        simulation: player, cars, traffic, peds, police,
-                    wanted, combat, pickups, missions, taxi jobs
-    city.js         the generated city: roads, buildings, beach, docks
-    missions.js     the five story missions and the side jobs
-    render.js       camera, city drawing, HUD, minimap, menus
-    input.js        keyboard + mouse
-    audio.js        WebAudio synth: engine, siren, shots, music
-    shots.js        the staged ?shot= scenes for the screenshots
-    config.js       every tuning number and colour
-    random.js       seeded RNG (mulberry32)
-```
+## Originality
 
-Everything in the game — the city, characters, vehicles, names, story, art
-and sound — is original work made for this entry. No Rockstar Games name,
-logo, character, map or asset is used.
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+Everything here is invented: Port Aurora, the Tide crew, Marisol, Dante, the
+streets and the story. Nothing is taken from any commercial game.
