@@ -3,6 +3,8 @@
 // mission objective, speed, and a live minimap that never stops tracking.
 import { CFG, PALETTE } from './settings.js';
 import { jobMarker, currentStep } from './jobs.js';
+import { drawStashes } from './pickups.js';
+import { drawShop } from './shop.js';
 
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
@@ -35,7 +37,9 @@ export function drawWorld(ctx, G) {
   drawParks(ctx, G);
   drawBuildings(ctx, G, x0, y0, x1, y1);
   drawPickups(ctx, G);
+  drawStashes(ctx, G);
   drawMarker(ctx, G);
+  drawGarageMarker(ctx, G);
   for (const ped of G.peds) if (ped.alive) drawPed(ctx, ped);
   for (const cop of G.cops) if (cop.alive) drawPed(ctx, cop, true);
   for (const car of G.cars) if (car.alive) drawCar(ctx, car);
@@ -66,6 +70,26 @@ function drawGround(ctx, G, x0, y0, x1, y1) {
     ctx.fillStyle = PALETTE.waterDeep;
     for (let x = Math.floor(x0 / 180) * 180; x < x1; x += 180) {
       ctx.fillRect(x, Math.max(y0, T.size - 44), 90, 5);
+    }
+    // Palm trees along the sand, swaying gently.
+    const sway = Math.sin(G.time * 0.9) * 2;
+    for (let i = 0; i < 12; i++) {
+      const px = 150 + i * 300;
+      const py = T.beachTop + 70 + (i % 3) * 38;
+      if (px < x0 - 40 || px > x1 + 40 || py < y0 - 40 || py > y1 + 40) continue;
+      ctx.strokeStyle = '#7a5230';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.quadraticCurveTo(px + 6, py - 18, px + 10 + sway, py - 30);
+      ctx.stroke();
+      ctx.fillStyle = '#3f8f3a';
+      for (let f = 0; f < 5; f++) {
+        const a = -Math.PI / 2 + (f - 2) * 0.5;
+        ctx.beginPath();
+        ctx.ellipse(px + 10 + sway + Math.cos(a) * 13, py - 30 + Math.sin(a) * 9, 13, 5, a, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
   }
   // Container docks: concrete yard with stacked boxes.
@@ -204,6 +228,28 @@ function drawMarker(ctx, G) {
   ctx.lineTo(m.x + 9, m.y - 52 - Math.sin(t) * 4);
   ctx.closePath();
   ctx.fill();
+}
+
+function drawGarageMarker(ctx, G) {
+  const gx = G.town.garage.x;
+  const gy = G.town.garage.y;
+  const t = performance.now() / 350;
+  const pulse = 14 + Math.sin(t) * 3;
+  ctx.save();
+  ctx.translate(gx, gy);
+  ctx.rotate(Math.PI / 4);
+  ctx.fillStyle = 'rgba(47,214,115,0.9)';
+  ctx.fillRect(-7, -7, 14, 14);
+  ctx.restore();
+  ctx.strokeStyle = 'rgba(47,214,115,0.7)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(gx, gy, pulse, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = '#2fd673';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('GARAGE', gx, gy - 24);
 }
 
 function drawCar(ctx, car) {
@@ -366,6 +412,12 @@ export function drawHUD(ctx, G) {
   for (let i = 0; i < 5; i++) stars += i < G.wanted ? '★' : '☆';
   ctx.fillStyle = G.wanted > 0 ? '#ffd23f' : 'rgba(255,255,255,0.55)';
   ctx.fillText(stars, 24, 92);
+  // Stash haul this session.
+  ctx.fillStyle = '#ffe45e';
+  ctx.font = 'bold 12px sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText(`STASH ×${G.stashFound}`, 250, 92);
+  ctx.textAlign = 'left';
   if (G.bustTimer > 0) {
     ctx.fillStyle = '#ff4444';
     ctx.font = 'bold 12px sans-serif';
@@ -376,7 +428,7 @@ export function drawHUD(ctx, G) {
   const step = currentStep(G);
   const job = G.mission && G.mission.job;
   if (job && step) {
-    const label = `${job.title}: ${step.label}`;
+    const label = `JOB ${job.id + 1}/5 — ${job.title}: ${step.label}`;
     ctx.font = 'bold 14px sans-serif';
     const w = ctx.measureText(label).width + 28;
     ctx.fillStyle = 'rgba(8,14,22,0.72)';
@@ -481,6 +533,35 @@ export function drawHUD(ctx, G) {
     }
   }
 
+  // Red hurt vignette: the screen bleeds at the edges when you take damage.
+  if (G.hurtFlash > 0) {
+    const vg = ctx.createRadialGradient(vw / 2, vh / 2, Math.min(vw, vh) * 0.32, vw / 2, vh / 2, Math.max(vw, vh) * 0.72);
+    vg.addColorStop(0, 'rgba(255,30,30,0)');
+    vg.addColorStop(1, `rgba(255,30,30,${0.45 * G.hurtFlash})`);
+    ctx.fillStyle = vg;
+    ctx.fillRect(0, 0, vw, vh);
+  }
+
+  // Speed lines at the screen edges when the car is flat out.
+  if (G.player.car && Math.abs(G.player.car.speed) > 420) {
+    const ratio = (Math.abs(G.player.car.speed) - 420) / 220;
+    ctx.strokeStyle = `rgba(255,255,255,${0.28 * ratio})`;
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 8; i++) {
+      const yy = ((i * 173 + Math.floor(G.time * 900)) % (vh - 40)) + 20;
+      const len = 40 + ratio * 70;
+      const left = (i % 2 === 0);
+      const xx = left ? 6 : vw - 6 - len;
+      ctx.beginPath();
+      ctx.moveTo(xx, yy);
+      ctx.lineTo(xx + len, yy);
+      ctx.stroke();
+    }
+  }
+
+  // Garage shop panel when parked on foot at Dante's.
+  drawShop(ctx, G);
+
   // Crosshair.
   if (G.state === 'play') {
     const mx = G.input.mouseX;
@@ -545,6 +626,17 @@ function drawMinimap(ctx, G, x, y) {
   };
   const m = jobMarker(G);
   if (m) dot(m.x, m.y, '#ffe45e', 5);
+  // Unclaimed cash stashes glow gold on the map.
+  for (const s of G.pickups) {
+    if (!s.taken && s.kind === 'cash') dot(s.x, s.y, '#ffe45e', 2.5);
+  }
+  // Dante's garage, always marked.
+  ctx.fillStyle = '#2fd673';
+  ctx.save();
+  ctx.translate(x + G.town.garage.x * scale, y + G.town.garage.y * scale);
+  ctx.rotate(Math.PI / 4);
+  ctx.fillRect(-3, -3, 6, 6);
+  ctx.restore();
   for (const car of G.copCars) if (car.alive) dot(car.x, car.y, Math.sin(car.sirenPhase) > 0 ? '#ff3b30' : '#2f7bff', 3.5);
   for (const cop of G.cops) if (cop.alive) dot(cop.x, cop.y, '#7fb3ff', 2.5);
   // Player: white triangle, always on top.
@@ -591,6 +683,24 @@ export function drawTitle(ctx, G) {
   }
   ctx.fillStyle = '#141020';
   ctx.fillRect(0, base, vw, vh - base);
+  // Two cars cruise the avenue below the skyline, headlights on.
+  const roadY = base + (vh - base) * 0.45;
+  const carAt = (speed, offset, color, flip) => {
+    const span = vw + 240;
+    let cx = ((G.time * speed + offset) % span) - 120;
+    if (flip) cx = span - 120 - ((G.time * speed + offset) % span);
+    ctx.fillStyle = color;
+    roundRect(ctx, cx - 26, roadY + (flip ? 26 : -8), 52, 20, 6);
+    ctx.fill();
+    ctx.fillStyle = '#20262e';
+    roundRect(ctx, cx - 8, roadY + (flip ? 30 : -4), 14, 12, 3);
+    ctx.fill();
+    ctx.fillStyle = '#ffe9a8';
+    ctx.fillRect(flip ? cx - 28 : cx + 24, roadY + (flip ? 30 : -4), 3, 4);
+    ctx.fillRect(flip ? cx - 28 : cx + 24, roadY + (flip ? 42 : 8), 3, 4);
+  };
+  carAt(90, 0, '#c0392b', false);
+  carAt(64, 500, '#2980b9', true);
 
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ffe45e';

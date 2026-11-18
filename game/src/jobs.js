@@ -117,6 +117,7 @@ function spawnRivals(G, count) {
       targetX: 0, targetY: 0, wait: 0,
       shootTimer: 0.6 + i * 0.25,
       flee: 0,
+      fleeX: 0, fleeY: 0,
     });
   }
 }

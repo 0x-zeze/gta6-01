@@ -29,6 +29,7 @@ network dependency — the game is plain static files under `game/`.
 | E | Enter or steal the nearest car; exit the car you are driving |
 | W / S + A / D | Accelerate, brake/reverse, steer — Space is the handbrake |
 | Mouse | Aim, click to shoot |
+| 1 / 2 / 3 | At Dante's garage, on foot: buy Engine / Armor / Ammo upgrades |
 | M | Mute / unmute |
 | Enter / click | Start the game, or keep playing after Busted / Wasted |
 
@@ -47,11 +48,20 @@ network dependency — the game is plain static files under `game/`.
 - **Five story jobs** — *First Run*, *Hot Wheels*, *Heat Wave*,
   *Dockside Trouble* and *The Long Sunset*, with markers, a waypoint arrow,
   objective text and cash rewards. Finish them all for free roam.
+- **Stashes to hunt** — cash stashes, medkits and ammo crates are hidden
+  around the city (gold dots on the minimap). Grab them for cash, health
+  and rounds; a taken stash respawns somewhere new after a while.
+- **Dante's garage upgrades** — spend job cash at the garage on permanent
+  Engine (top speed), Armor (damage taken) and Ammo (pistol capacity)
+  upgrades, three levels each. Cash finally has somewhere to go.
 - **Combat** — a pistol with ammo, hostile rivals who shoot back, and
-  battered cars that smoke and explode.
+  battered cars that smoke and explode. Pedestrians scatter when the
+  shooting starts; at five stars the precinct sends faster interceptors.
 - **HUD with a live minimap** — cash, health, wanted stars, ammo, speed, an
-  objective panel, and a minimap tracking you, the police and the job marker.
-- **Save and sound** — progress (cash, jobs) saves to localStorage
+  objective panel, and a minimap tracking you, the police, the job marker,
+  the garage and the unclaimed cash stashes. Skid marks, speed lines and a
+  red hurt vignette sell the driving and the damage.
+- **Save and sound** — progress (cash, jobs, garage upgrades) saves to localStorage
   automatically; every sound is synthesized live with WebAudio. There is a
   start screen, plus Busted / Wasted end cards.
 
@@ -67,6 +77,9 @@ network dependency — the game is plain static files under `game/`.
   arrow at the edge of the screen pointing to the objective.
 - **Hemat peluru.** Ammo is limited and rivals shoot back — drive past a
   fight you do not need instead of standing in it.
+- **Sikat stash dulu, upgrade kemudian.** A few cash stashes pay for the
+  first Engine upgrade — and a faster car turns every getaway after that
+  into a clean escape.
 
 ## Files
 
@@ -75,6 +88,8 @@ network dependency — the game is plain static files under `game/`.
 - `game/src/town.js` — Port Aurora: avenues, blocks, park, beach, docks.
 - `game/src/actors.js` — traffic, pedestrians, police, bullets, wanted system.
 - `game/src/jobs.js` — the five Tide jobs and their steps.
+- `game/src/pickups.js` — cash stashes, medkits and ammo crates around the city.
+- `game/src/shop.js` — Dante's garage: Engine / Armor / Ammo upgrades for cash.
 - `game/src/paint.js` — world rendering, HUD, live minimap, title/end cards.
 - `game/src/sound.js` — WebAudio synth: engine, sirens, shots, jingles.
 - `game/src/settings.js` — tuning numbers and the city palette.

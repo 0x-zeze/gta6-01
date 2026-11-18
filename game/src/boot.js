@@ -11,9 +11,11 @@ import {
   makeCar, spawnTraffic, spawnParked, spawnPeds,
   updateTraffic, updatePeds, updatePolice, updateBullets,
   updateParticles, updateWanted, fireBullet, raiseWanted,
-  damageCar, hurtPlayer,
+  damageCar, hurtPlayer, spawnSkid,
 } from './actors.js';
 import { buildJobs, startJob, updateJobs } from './jobs.js';
+import { spawnStashes, updatePickups } from './pickups.js';
+import { ammoMax, topSpeedMul, updateShop, freshUpgrades } from './shop.js';
 import { drawWorld, drawHUD, drawTitle, drawEndCard } from './paint.js';
 import { setupShot } from './stage.js';
 
@@ -47,6 +49,9 @@ const G = {
   shake: 0,
   flash: '',
   flashTimer: 0,
+  hurtFlash: 0,
+  stashFound: 0,
+  ammoMax: 0,
   wanted: 0,
   wantedTimer: 0,
   lastCrime: '',
@@ -77,9 +82,11 @@ const G = {
 };
 
 G.sound.setMuted(save.muted);
-G.cars = [...spawnTraffic(town, rng, 16), ...spawnParked(town, rng, 14)];
-G.peds = spawnPeds(town, rng, 26);
+G.ammoMax = ammoMax(G);
+G.cars = [...spawnTraffic(town, rng, 20), ...spawnParked(town, rng, 14)];
+G.peds = spawnPeds(town, rng, 32);
 G.jobs = buildJobs(G);
+G.pickups = spawnStashes(G);
 
 // --- player control ----------------------------------------------------------
 
@@ -145,7 +152,7 @@ function updatePlayer(dt) {
     else if (fwd < 0) car.speed -= CFG.carReverse * dt;
     else car.speed -= Math.sign(car.speed) * Math.min(Math.abs(car.speed), 240 * dt);
     if (braking) car.speed -= Math.sign(car.speed) * Math.min(Math.abs(car.speed), CFG.carBrake * dt);
-    car.speed = clamp(car.speed, -180, CFG.carTopSpeed * (car.kind === 'sport' ? 1.18 : 1));
+    car.speed = clamp(car.speed, -180, CFG.carTopSpeed * (car.kind === 'sport' ? 1.18 : 1) * topSpeedMul(G));
     const turnRate = CFG.carTurn * (0.4 + 0.6 * Math.min(1, Math.abs(car.speed) / 240));
     car.angle += steer * turnRate * dt * Math.sign(car.speed || 1) * (car.speed < 0 ? -1 : 1);
     const nx = car.x + Math.cos(car.angle) * car.speed * dt;
@@ -166,6 +173,15 @@ function updatePlayer(dt) {
     const edge = town.clampToWorld(car.x, car.y, 30);
     car.x = edge.x;
     car.y = edge.y;
+    // Handbrake at speed leaves skid marks on the asphalt.
+    if (braking && Math.abs(car.speed) > 200) {
+      const bx = car.x - Math.cos(car.angle) * 18;
+      const by = car.y - Math.sin(car.angle) * 18;
+      const px = Math.cos(car.angle + Math.PI / 2);
+      const py = Math.sin(car.angle + Math.PI / 2);
+      spawnSkid(G, bx + px * 9, by + py * 9);
+      spawnSkid(G, bx - px * 9, by - py * 9);
+    }
     // Running over pedestrians is a crime, and it shows.
     for (const ped of G.peds) {
       if (ped.alive && Math.hypot(ped.x - car.x, ped.y - car.y) < 24 && Math.abs(car.speed) > 120) {
@@ -209,7 +225,7 @@ function updatePlayer(dt) {
     p.ammo -= 1;
     fireBullet(G, p.x, p.y, p.aimAngle, 780, 'player');
   }
-  if (p.ammo < CFG.pistolAmmoMax && Math.random() < dt * 2) p.ammo += 1;
+  if (p.ammo < G.ammoMax && Math.random() < dt * 2) p.ammo += 1;
 
   if (input.wasPressed('m')) {
     save.muted = !save.muted;
@@ -238,10 +254,14 @@ function startGame(fresh) {
     save.cash = MONEY.startCash;
     save.missionIndex = 0;
     save.missionsDone = [];
+    save.upgrades = freshUpgrades();
+    G.ammoMax = ammoMax(G);
+    G.pickups = spawnStashes(G);
+    G.stashFound = 0;
     G.wanted = 0;
   }
   G.player.hp = CFG.playerHp;
-  G.player.ammo = CFG.pistolAmmoMax;
+  G.player.ammo = G.ammoMax;
   G.player.x = town.spawn.x;
   G.player.y = town.spawn.y;
   if (G.player.car) {
@@ -263,6 +283,7 @@ function startGame(fresh) {
 
 function resumeAfterEnd() {
   G.player.hp = CFG.playerHp;
+  G.player.ammo = G.ammoMax;
   G.player.x = town.hospital.x;
   G.player.y = town.hospital.y;
   if (G.player.car) {
@@ -283,6 +304,7 @@ function update(dt) {
   G.time += dt;
   G.shake = Math.max(0, G.shake - dt * 30);
   G.flashTimer = Math.max(0, G.flashTimer - dt);
+  G.hurtFlash = Math.max(0, G.hurtFlash - dt * 1.2);
 
   if (G.state === 'title') {
     if (G.input.wasPressed('enter') || G.input.clicked) {
@@ -304,6 +326,8 @@ function update(dt) {
   updateParticles(G, dt);
   updateWanted(G, dt);
   updateJobs(G, dt);
+  updatePickups(G, dt);
+  updateShop(G);
   updateCamera(dt);
 
   // Health creeps back when the player is calm and out of trouble.

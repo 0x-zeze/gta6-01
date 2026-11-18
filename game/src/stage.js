@@ -65,11 +65,17 @@ export function setupShot(G, startGame, params) {
     G.camera.y = car.y;
     G.player.hp = 78;
     raiseWanted(G, 4, 'staged chase');
+    // Interceptors on the same avenue, right behind the player and closing
+    // in — the chase reads at a glance instead of hiding behind the blocks.
+    // They run a hotter top speed than patrol cars so they gain on the
+    // getaway car, and the player is invulnerable while the scene settles.
+    G.godTimer = 6;
+    car.hp = 500;
     for (let i = 0; i < 3; i++) {
-      const a = Math.PI / 2 + (i - 1) * 0.7;
-      const cop = makeCar('cop', car.x + Math.cos(a + Math.PI) * 190, car.y + Math.sin(a + Math.PI) * 190, a, '#1c3a5e');
+      const cop = makeCar('cop', G.town.lines[4] + (i - 1) * 8, car.y - 170 - i * 80, Math.PI / 2, '#1c3a5e');
       cop.driver = 'police';
-      cop.speed = 620;
+      cop.speed = 700;
+      cop.topSpeed = 780;
       G.copCars.push(cop);
       G.cars.push(cop);
     }

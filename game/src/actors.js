@@ -3,6 +3,7 @@
 // bullets, smoke and explosions, and the wanted system that ties crime to response.
 import { CFG, PALETTE } from './settings.js';
 import { angleDiff, angleTo, clamp, dist2 } from './rng.js';
+import { damageMul } from './shop.js';
 
 let carId = 1;
 
@@ -78,9 +79,23 @@ export function spawnPeds(town, rng, count) {
       wait: rng.range(0, 2),
       shootTimer: rng.range(0.5, 1.5),
       flee: 0,
+      fleeX: 0, fleeY: 0,
     });
   }
   return peds;
+}
+
+// Gunfire and blasts make nearby pedestrians scatter — they run away from
+// the noise, not toward it.
+export function scarePeds(G, x, y, radius) {
+  for (const ped of G.peds) {
+    if (!ped.alive || ped.hostile) continue;
+    if (Math.hypot(ped.x - x, ped.y - y) < radius) {
+      ped.flee = 2.5;
+      ped.fleeX = x;
+      ped.fleeY = y;
+    }
+  }
 }
 
 // --- movement helpers -------------------------------------------------------
@@ -178,7 +193,7 @@ export function updatePeds(G, dt) {
     if (!ped.alive) continue;
     if (ped.flee > 0) {
       ped.flee -= dt;
-      const away = angleTo(G.player.x, G.player.y, ped.x, ped.y);
+      const away = angleTo(ped.fleeX, ped.fleeY, ped.x, ped.y);
       ped.x += Math.cos(away) * CFG.pedSpeed * 2.1 * dt;
       ped.y += Math.sin(away) * CFG.pedSpeed * 2.1 * dt;
     } else if (ped.hostile) {
@@ -253,7 +268,10 @@ export function updatePolice(G, dt) {
 
   for (const car of G.copCars) {
     if (!car.alive) continue;
-    chaseSteer(car, G.player.x, G.player.y, CFG.copCarSpeed, dt);
+    // At five stars the precinct stops holding back: faster interceptors.
+    // A car may carry its own topSpeed (the staged chase interceptors do).
+    const top = (car.topSpeed || CFG.copCarSpeed) * (G.wanted >= 5 ? 1.08 : 1);
+    chaseSteer(car, G.player.x, G.player.y, top, dt);
     car.sirenPhase += dt * 6;
     collideBuildings(G.town, car, 20);
     // Ramming the player's car hurts; ramming the player on foot hurts more.
@@ -310,6 +328,7 @@ export function fireBullet(G, x, y, angle, speed, from) {
   });
   G.sound.shot();
   spawnMuzzle(G, x + Math.cos(angle) * 20, y + Math.sin(angle) * 20);
+  scarePeds(G, x, y, 260);
 }
 
 export function updateBullets(G, dt) {
@@ -367,6 +386,7 @@ export function killCop(G, cop) {
 }
 
 export function damageCar(G, car, amount) {
+  if (car.driver === 'player') amount *= damageMul(G);
   car.hp -= amount;
   car.smoke = Math.min(1, car.smoke + amount / 90);
   if (car.hp <= 0 && car.alive) {
@@ -379,6 +399,7 @@ export function explodeCar(G, car) {
   spawnExplosion(G, car.x, car.y);
   G.sound.explosion();
   G.shake = 14;
+  scarePeds(G, car.x, car.y, 320);
   if (car.driver === 'player') {
     G.player.car = null;
     G.player.onFoot = true;
@@ -418,7 +439,9 @@ export function updateWanted(G, dt) {
 
 export function hurtPlayer(G, amount, cause) {
   if (G.state !== 'play' || G.godTimer > 0) return;
+  amount *= damageMul(G);
   G.player.hp -= amount;
+  G.hurtFlash = Math.min(1, (G.hurtFlash || 0) + amount / 25);
   if (G.player.hp <= 0) {
     G.player.hp = 0;
     wastePlayer(G, cause);
@@ -481,6 +504,10 @@ export function spawnExplosion(G, x, y) {
     });
   }
   G.particles.push({ x, y, vx: 0, vy: -14, life: 1.2, max: 1.2, color: PALETTE.smoke, size: 42, kind: 'smoke' });
+}
+
+export function spawnSkid(G, x, y) {
+  G.particles.push({ x, y, vx: 0, vy: 0, life: 0.7, max: 0.7, color: 'rgba(22,22,22,0.5)', size: 5, kind: 'skid' });
 }
 
 export function spawnPickupSparkle(G, x, y) {
