@@ -1,5 +1,11 @@
 # Solstice City — an open-world crime game (make.fun gta6-01)
 
+[![make.fun · gta6-01](https://make.fun/badge/gta6-01.svg)](https://make.fun/bounty/gta6-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
+[![rank](https://make.fun/badge/gta6-01/0x-zeze/gta6-01/rank.svg)](https://make.fun/bounty/gta6-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
+[![reward](https://make.fun/badge/gta6-01/0x-zeze/gta6-01/reward.svg)](https://make.fun/bounty/gta6-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
+
+An entry for the [Make GTA 6 bounty](https://make.fun/bounty/gta6-01) on make.fun.
+
 **Port Aurora** is a sun-soaked harbour city, and you are its newest runner.
 Steal cars off the avenues, outrun the harbour police, and run five jobs for
 the Tide crew — from a first quiet delivery at the docks to one long sunset
