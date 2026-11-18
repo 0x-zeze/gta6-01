@@ -1,61 +1,95 @@
-// Every tuning number and colour in one place. The playfield is a fixed 1280x720 logical area;
-// the renderer scales it to the window, so no rule below depends on the screen size.
+// Vice Shores — every tuning number and colour in one place.
+// The world is a fixed 3600 x 2600 open city; the camera shows a 1280 x 720
+// window of it, scaled to the browser window, so no rule depends on screen size.
 
-export const FIELD = { width: 1280, height: 720, groundY: 664 };
+export const WORLD = { width: 3600, height: 2600 };
+export const VIEW = { width: 1280, height: 720 };
 
 /** The simulation's fixed step, in seconds: 60 updates a second whatever the display's rate. */
 export const STEP = 1 / 60;
 
+/** Streets run on this grid pitch; blocks sit between the roads. */
+export const GRID = 400;
+export const ROAD = 96;
+
 export const PLAYER = {
-  width: 72,
-  height: 24,
-  speed: 560,
-  invulnerable: 1.5,
+  radius: 13,
+  walk: 230,
+  sprint: 350,
+  health: 100,
+  armor: 50,
+  punchDamage: 12,
 };
 
-export const LIVES = 3;
-
-export const BLOCK = {
-  minWidth: 40,
-  maxWidth: 110,
-  height: 36,
-  speed: 240,
-  speedPerLevel: 30,
-  speedJitter: 90,
-  interval: 0.55,
-  intervalScale: 0.88,
-  minInterval: 0.14,
-  dodgePoints: 1,
+export const CAR = {
+  length: 54,
+  width: 26,
+  accel: 420,
+  brake: 620,
+  maxSpeed: 560,
+  maxReverse: 180,
+  steer: 2.6,
+  grip: 2.2,
+  health: 100,
 };
 
-export const COIN = {
-  size: 24,
-  speed: 190,
-  speedPerLevel: 14,
-  interval: 1.4,
-  intervalJitter: 0.8,
-  points: 10,
+export const TRAFFIC = { count: 26, speed: 150, speedJitter: 60 };
+export const PEDS = { count: 34, speed: 55, speedJitter: 30 };
+export const POLICE = { carSpeed: 520, footSpeed: 250, bustTime: 1.4 };
+
+export const WANTED = {
+  max: 5,
+  decaySeconds: 14,
+  // Police units on the street at each wanted level (cars, then foot officers).
+  cars: [0, 1, 2, 3, 4, 5],
+  foot: [0, 0, 1, 2, 3, 4],
 };
 
-/** Seconds of play per level, and the last level: speeds and spawn rates stop growing there. */
-export const LEVEL = { seconds: 12, max: 12 };
+export const BULLET = { speed: 900, damage: 34, range: 520, fireRate: 0.22 };
+export const ENEMY = { health: 60, damage: 9, fireRate: 1.1, range: 420 };
 
-/** How many falling things can exist at once; the pool is allocated once, at boot. */
-export const POOL_SIZE = 64;
+export const MONEY = { start: 120, taxiFare: 180, pickup: 60, missionBonus: [400, 600, 900, 1200, 2500] };
 
 export const PALETTE = {
-  backdrop: '#11141b',
-  sky: '#1b1f2a',
-  ground: '#2a3040',
-  player: '#4fc3f7',
-  block: '#e5534b',
-  coin: '#f2c94c',
-  panel: '#252b38',
+  backdrop: '#0d1520',
+  grass: '#3f7d4a',
+  grassDark: '#356b3f',
+  sand: '#d9c27a',
+  water: '#1d6f8e',
+  waterDeep: '#155a75',
+  road: '#2b2f36',
+  roadEdge: '#3a3f47',
+  lane: '#d8c95a',
+  sidewalk: '#8d9299',
+  building: ['#c96f4a', '#4a7a96', '#8a6fb0', '#b0a05a', '#5a9a7a', '#96505a', '#6a7a8a', '#c98a4a'],
+  buildingRoof: '#2e3440',
+  glass: '#9fd8e8',
+  tree: '#2c6b34',
+  treeDark: '#235a2b',
+  park: '#4a8a52',
+  dock: '#7a6a52',
+  pier: '#8a7a5e',
+  player: '#f2c94c',
+  playerShirt: '#e5534b',
+  ped: ['#e8e0d0', '#7ab0d8', '#d88ab0', '#a0d88a', '#d8b06a', '#b08ad8'],
+  police: '#2a4a8a',
+  policeCar: '#1e3a6e',
+  taxi: '#f2c230',
+  hud: '#eef1f5',
+  hudPanel: 'rgba(10, 16, 26, 0.72)',
+  hudAccent: '#f2c94c',
+  star: '#ffd94a',
+  starEmpty: '#5a6270',
+  health: '#4ade80',
+  armor: '#60a5fa',
+  danger: '#ef4444',
+  mission: '#f2c94c',
   text: '#eef1f5',
-  muted: '#8b93a3',
+  muted: '#9aa3b0',
 };
 
 export const FONT = 'system-ui, -apple-system, "Segoe UI", sans-serif';
 
-/** Where the best score is kept between visits (this browser only). */
-export const BEST_KEY = 'block-dodger.best';
+/** Where the save (cash, mission, position) is kept between visits (this browser only). */
+export const SAVE_KEY = 'vice-shores.save.v1';
+export const BEST_KEY = 'vice-shores.best.v1';
